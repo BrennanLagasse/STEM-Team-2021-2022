@@ -27,14 +27,21 @@ void search(int duration) {
     duration = pulseIn(echoPin, HIGH);
     distance = duration * 0.0343 /2;
 
-    // Print out distance
-    Serial.println(distance);
+    // Check if the duration value is valid. If so, save it. If not, trash it.
+    if(duration > 0 && duration < 500) {
+      // Print out distance
+      Serial.println(distance);
 
-    // Add distance to the log along with a timestamp
-    dataLog[numDataPoints, millis()];
+      // Add distance to the log along with a timestamp
+      dataLog[numDataPoints, millis()];
 
-    // Update the counter for the number of data points that have been measured
-    numDataPoints += 1;
+      // Update the counter for the number of data points that have been measured
+      numDataPoints += 1;
+    }
+    else {
+      // Warn the user about a value out of bounds
+      Serial.println("Value detected out of sensor range.");
+    }
   }
 }
 
@@ -51,4 +58,42 @@ void setup() {
 // Runs for duration of program
 void loop() {
   search();
+  
+  // Landing range
+  int groupSize = 10;
+  
+  // Stores the minimum difference between the minimum and maximum values of a group. Set to maximum (450) by default for ease of use.
+  double minDiff = 450;
+  
+  // Stores the index of the middle value of this group. Set to 0 by default.
+  int minIndex = 0;
+  
+  // Increase to increase precision, decrease to increase speed
+  int incrementSize = 5;
+  
+  // Process data with minimum/maximum difference
+  for(int i = 0; i <= numDataPoints - groupSize; i += incrementSize) {
+    // Set to opposite extreme values by default
+    double localMin = 0;
+    double localMax = 450;
+    
+    for(int j = i; j < groupSize + i; j++) {
+      if(dataLog[j] < localMin) {
+        localMin = dataLog[j];
+      }
+      if(dataLog[j] > localMax) {
+        localMax = dataLog[j];
+      }
+    }
+    
+    // Find the diffence over the region
+    double diff = localMax - localMin;
+    
+    // Update best position if the difference is smaller than the current lowest
+    if(diff < minDiff) {
+      minDiff = diff;
+      minIndex = i;
+    }
+  }
+  
 }
