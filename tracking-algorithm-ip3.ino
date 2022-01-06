@@ -1,18 +1,22 @@
+// Pin Constants
 int trigPin = 2;
 int echoPin = 3;
-double duration;
-double distance;
 
-
+// Global variables 
 int numDataPoints = 0;
-double dataLog[50][2];
+double dataLog[100][2];
 
+//Tuning constants 
+double searchLength = 15;
+double sensorDelay = 0.15;
+int landRange = 5;
 
-void search(int duration) {
-  // @ Param duration - duration of the search in seconds
+void search(int t, int delay) {
+  // @ Param t - duration of the search in seconds
+  // @ Param delay - delay between sensor readings (in seconds)
 
   // Set the ending time to the current time plus the duration in milliseconds
-  int endTime = duration*1000 + millis();
+  int endTime = t*1000 + millis();
 
   while(millis() < endTime) {
     double tempDistTotal = 0;
@@ -39,12 +43,15 @@ void search(int duration) {
         Serial.println("Value detected out of sensor range.");
         i--;
       }
+
+      // Wait to limit data input
+      delayMicroseconds(delay * 10000);
     }
+    Serial.println(50 - tempDistTotal);
     dataLog[numDataPoints][0] = tempDistTotal;
     dataLog[numDataPoints][1] = startTime;
     numDataPoints++;
   }
-  Serial.println("Done searching");
 }
 
 void setup() {
@@ -55,22 +62,20 @@ void setup() {
   Serial.begin(9600);
 
   // Run search - only runs once, so it is in setup
-  search(10);
+  search(searchLength, sensorDelay);
 
   // The optimal landing location is flat and low
 
   // Land time is set to zero by default
-  int landTime = 0;
-
-  // Choose landing range (should be around the length of the landing module
-  int landRange = 5;
+  double landTime = 0;
+  int landIndex = 0;
 
   // Now that data is pooled, search for a section with minimum deviance
-  int minDeviance = 500;
+  double minDeviance = 500;
 
-  for(int i = 0; i <= dataLog.size() - landRange; i++) {
-    int max = 0;
-    int min = 500;
+  for(int i = 0; i <= numDataPoints - landRange; i++) {
+    double max = 0;
+    double min = 500;
 
     for(int j = i; j < i + landRange; j++) {
       if(dataLog[j][0] > max) {
@@ -86,8 +91,15 @@ void setup() {
     if(deviance < minDeviance) {
       minDeviance = deviance;
       landTime = (dataLog[i][1] + dataLog[i + landRange - 1][1])*0.5;
+      landIndex = i;
     }
   }
+  
+  Serial.println("The optimal landing location is at: ");
+  Serial.print(landTime/1000);
+  Serial.print(" seconds");
+}
 
-  System.out.println("The optimal landing location is at " + landTime + " seconds");
+void loop() {
+
 }
