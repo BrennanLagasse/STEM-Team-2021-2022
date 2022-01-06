@@ -2,14 +2,15 @@
 int trigPin = 2;
 int echoPin = 3;
 
+//Tuning constants 
+double searchLength = 15;
+double sensorDelay = 0.2;
+int landRange = 15;
+int maxVals = 100;
+
 // Global variables 
 int numDataPoints = 0;
 double dataLog[100][2];
-
-//Tuning constants 
-double searchLength = 15;
-double sensorDelay = 0.15;
-int landRange = 5;
 
 void search(int t, int delay) {
   // @ Param t - duration of the search in seconds
@@ -18,7 +19,7 @@ void search(int t, int delay) {
   // Set the ending time to the current time plus the duration in milliseconds
   int endTime = t*1000 + millis();
 
-  while(millis() < endTime) {
+  while(millis() < endTime && numDataPoints < maxVals) {
     double tempDistTotal = 0;
     double startTime = millis();
     
@@ -74,32 +75,31 @@ void setup() {
   double minDeviance = 500;
 
   for(int i = 0; i <= numDataPoints - landRange; i++) {
-    double max = 0;
-    double min = 500;
+    double maxVal = 0;
+    double minVal = 500;
 
     for(int j = i; j < i + landRange; j++) {
-      if(dataLog[j][0] > max) {
-        max = dataLog[j][0];
+      if(dataLog[j][0] > maxVal) {
+        maxVal = dataLog[j][0];
       }
-      if(dataLog[j][0] < min) {
-        min = dataLog[j][0];
+      if(dataLog[j][0] < minVal) {
+        minVal = dataLog[j][0];
       }
     }
 
-    double deviance = max - min;
+    double deviance = maxVal - minVal;
 
     if(deviance < minDeviance) {
       minDeviance = deviance;
       landTime = (dataLog[i][1] + dataLog[i + landRange - 1][1])*0.5;
-      landIndex = i;
+      landIndex = i + landRange / 2;
     }
   }
-  
-  Serial.println("The optimal landing location is at: ");
+  Serial.println();
   Serial.print(landTime/1000);
-  Serial.print(" seconds");
+  Serial.println("s");
+  Serial.print(landIndex);
+  Serial.println("i");
 }
 
-void loop() {
-
-}
+void loop() { }
