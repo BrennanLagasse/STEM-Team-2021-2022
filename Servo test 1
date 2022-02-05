@@ -1,0 +1,20 @@
+#include <Servo.h>
+
+Servo myservo;
+
+void setup() {
+
+ myservo.attach(7);
+ myservo.write(90);
+
+}
+
+void loop() {
+put your main code here, to run repeatedly:
+
+
+  myservo.write(120);
+  myservo.write(90);
+
+
+}
