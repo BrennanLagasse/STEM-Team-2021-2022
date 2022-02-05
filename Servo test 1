@@ -12,9 +12,8 @@ void setup() {
 void loop() {
 put your main code here, to run repeatedly:
 
-
   myservo.write(120);
   myservo.write(90);
-
+CONTINUOUSLY ROTATES SERVO FROM 120 TO 90 DEGREES
 
 }
