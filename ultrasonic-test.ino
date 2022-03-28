@@ -4,10 +4,6 @@ int echoPin = 3;
 double duration;
 double distance;
 
-
-
-
-
 void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin,INPUT);
@@ -18,8 +14,6 @@ void setup() {
   //Serial.println("with Arduino UNO R3");
   
 }
-
-
 
 void loop() {
   digitalWrite(trigPin, LOW);
@@ -33,7 +27,4 @@ void loop() {
   distance = duration * 0.0343 /2;
   Serial.println(distance);
   
-  //
-   
-
 }
