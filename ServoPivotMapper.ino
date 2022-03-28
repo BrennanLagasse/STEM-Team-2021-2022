@@ -1,9 +1,9 @@
-
 // Libraries
 #include <Servo.h>
 
-double target = 75;
-double range = 15;
+double pos = 90;
+double range = 30;
+boolean servoDirection = false;
 
 // Pin Constants
 int trigPin = 2;
@@ -32,25 +32,29 @@ void search(int t, int delay) {
   int endTime = t*1000 + millis();
 
   while(millis() < endTime && numDataPoints < maxVals) {
-
-     //servo code meant to check and change the position of the servo-swinging it back and forth
-     if(abs(target - myservo.read()) <= 1){
-        if(target == 90 - range)
-        {
-          target = 90 + range;
-          myservo.write(target);
-        }
-        
-        else
-        {
-          target = 90 - range;
-          myservo.write(target);
-        }
-     }
+    
     double tempDistTotal = 0;
     double startTime = millis();
     
     for(int i = 0; i < 50; i++) {
+        // Move servo
+        if(servoDirection) {
+            pos += 3;
+            myservo.write(pos);
+
+            if(pos > 90 + range) {
+                servoDirection = false;
+            }
+        }
+        else {
+            pos -= 3;
+            myservo.write(pos);
+            
+            if(pos < 90 - range) {
+                servoDirection = true;
+            }
+        }
+
       // Collect data point
       digitalWrite(trigPin, LOW);
       delayMicroseconds(2);
@@ -60,7 +64,10 @@ void search(int t, int delay) {
 
       // Convert signal to distance
       double duration = pulseIn(echoPin, HIGH);
-      double distance = (duration * 0.0343 /2) * cos(myservo.read());
+      double d = (duration * 0.0343 / 2);
+      double distance = (duration * 0.0343 /2) * sin(myservo.read() * (3.1415/180));
+
+      Serial.println(distance);
 
       // Check if distance is valid
       if(distance > 0 && distance < 500) {
@@ -68,14 +75,14 @@ void search(int t, int delay) {
         tempDistTotal += distance/50;
       }
       else {
-        Serial.println("Value detected out of sensor range.");
+        // Serial.println("Value detected out of sensor range.");
         i--;
       }
 
       // Wait to limit data input
-      delayMicroseconds(delay * 10000);
+      delayMicroseconds(15000);
     }
-    Serial.println(50 - tempDistTotal);
+    // Serial.println(50 - tempDistTotal);
     dataLog[numDataPoints][0] = tempDistTotal;
     dataLog[numDataPoints][1] = startTime;
     numDataPoints++;
@@ -90,7 +97,7 @@ void setup() {
 
   Serial.println("Starting");
 
-  myservo.write(75);
+  myservo.write(pos);
   
   // Setup pins
   pinMode(trigPin, OUTPUT);
