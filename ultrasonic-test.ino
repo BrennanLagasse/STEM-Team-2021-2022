@@ -1,4 +1,3 @@
-
 int trigPin = 2;
 int echoPin = 3;
 double duration;
