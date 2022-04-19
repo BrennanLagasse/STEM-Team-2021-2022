@@ -65,7 +65,7 @@ void search(int t, int delay) {
       // Convert signal to distance
       double duration = pulseIn(echoPin, HIGH);
       double d = (duration * 0.0343 / 2);
-      double distance = (duration * 0.0343 /2) * sin(myservo.read() * (3.1415/180));
+      double distance = (duration * 0.0343 /2) * sin(pos * (3.1415/180));
 
       Serial.println(distance);
 
