@@ -1,8 +1,10 @@
 // Libraries
 #include <Servo.h>
 
+const double pi = 3.1415;
+
 double pos = 90;
-double range = 30;
+double range = 25;
 boolean servoDirection = false;
 
 // Pin Constants
@@ -37,23 +39,25 @@ void search(int t, int delay) {
     double startTime = millis();
     
     for(int i = 0; i < 50; i++) {
-        // Move servo
-        if(servoDirection) {
-            pos += 3;
-            myservo.write(pos);
+      // Group of 50
+      
+      // Move servo
+      if(servoDirection) {
+          pos += 1.5;
+          myservo.write(pos);
 
-            if(pos > 90 + range) {
-                servoDirection = false;
-            }
-        }
-        else {
-            pos -= 3;
-            myservo.write(pos);
-            
-            if(pos < 90 - range) {
-                servoDirection = true;
-            }
-        }
+          if(pos > 90 + range) {
+              servoDirection = false;
+          }
+      }
+      else {
+          pos -= 1.5;
+          myservo.write(pos);
+          
+          if(pos < 90 - range) {
+              servoDirection = true;
+          }
+      }
 
       // Collect data point
       digitalWrite(trigPin, LOW);
@@ -65,14 +69,15 @@ void search(int t, int delay) {
       // Convert signal to distance
       double duration = pulseIn(echoPin, HIGH);
       double d = (duration * 0.0343 / 2);
-      double distance = (duration * 0.0343 /2) * sin(pos * (3.1415/180));
-
-      Serial.println(distance);
+      double a = pos * (pi/180);
+      double distance = d * sin(a);
 
       // Check if distance is valid
-      if(distance > 0 && distance < 500) {
+      if(d > 0 && d < 500 && pos > 90 - range + 5 && pos < 90 + range - 5) {
         // Add distance to the log
         tempDistTotal += distance/50;
+
+        Serial.println(distance);
       }
       else {
         // Serial.println("Value detected out of sensor range.");
@@ -80,7 +85,7 @@ void search(int t, int delay) {
       }
 
       // Wait to limit data input
-      delayMicroseconds(15000);
+      delayMicroseconds(30000);
     }
     // Serial.println(50 - tempDistTotal);
     dataLog[numDataPoints][0] = tempDistTotal;
@@ -104,6 +109,9 @@ void setup() {
   pinMode(echoPin,INPUT);
 
   Serial.begin(9600);
+
+  // One time delay to ensure it starts at reset position
+  delayMicroseconds(1500);
 
   // Run search - only runs once, so it is in setup
   search(searchLength, sensorDelay);
