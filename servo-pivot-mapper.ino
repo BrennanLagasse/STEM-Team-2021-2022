@@ -1,16 +1,21 @@
 // Libraries
 #include <Servo.h>
 
+// Universal constants
 const double pi = 3.1415;
 
-double pos = 90;
-double range = 25;
-boolean servoDirection = false;
+// Challenge specific constants
+const double range = 25;
+const double speed = 5/60; // In ft/s
 
 // Pin Constants
-int trigPin = 2;
-int echoPin = 3;
-int servoPin = 7;
+const int trigPin = 2;
+const int echoPin = 3;
+const int servoPin = 7;
+
+// Servo variables
+double pos = 90;
+boolean servoDirection = false;
 
 //Tuning constants 
 double searchLength = 15;
@@ -94,28 +99,7 @@ void search(int t, int delay) {
   }
 }
 
-void setup() {
-
-  myservo.attach(servoPin);
-
-  Serial.begin(9600);
-
-  Serial.println("Starting");
-
-  myservo.write(pos);
-  
-  // Setup pins
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin,INPUT);
-
-  Serial.begin(9600);
-
-  // One time delay to ensure it starts at reset position
-  delayMicroseconds(1500);
-
-  // Run search - only runs once, so it is in setup
-  search(searchLength, sensorDelay);
-
+void pickLocation() {
   // The optimal landing location is flat and low
 
   // Land time is set to zero by default
@@ -147,11 +131,54 @@ void setup() {
       landIndex = i + landRange / 2;
     }
   }
+  
+  // Output values
   Serial.println();
-  Serial.print(landTime/1000);
-  Serial.println("s");
-  Serial.print(landIndex);
-  Serial.println("i");
+  double t = landTime/1000;
+  double position = t * speed;
+  
+  if(position < 0) {
+    position = 0;
+  }
+  else if(position > 8) {
+    position = 8;
+  }
+  Serial.println("Position: " + position);
 }
 
-void loop() { }
+void resetSearch() {
+  pos = 90;
+  myservo.write(pos);
+  
+  // Reset data log (values remain, but are overwritten/ignored
+  numDataPoints = 0;
+}
+
+void setup() {
+  myservo.attach(servoPin);
+
+  Serial.begin(9600);
+
+  Serial.println("Starting");
+
+  myservo.write(pos);
+  
+  // Setup pins
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin,INPUT);
+
+  Serial.begin(9600);
+
+  // One time delay to ensure it starts at reset position
+  delayMicroseconds(1500);
+}
+
+boolean c = true;
+
+void loop() { 
+  if(c) { // This needs a button associated with it
+    search(searchLength, sensorDelay);
+    pickLocation();
+    resetSearch();
+  }
+}
